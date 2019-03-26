@@ -7,21 +7,21 @@ class View:
         raise NotImplementedError()
     def loop(self):
         raise NotImplementedError()
-    
-class Controller:
-    def handle_item_selected(self, item):
-        raise NotImplementedError()
-    def open_archive(self, path):
-        raise NotImplementedError()
 
 class DataProvider:
-    def list_instances(self):
+    def open_path(self, path):
         raise NotImplementedError()
-    def list_algorithms(self):
+    def get_instances(self):
+        raise NotImplementedError()
+    def get_algorithms(self):
         raise NotImplementedError()
     def get_plot_data(self, instance, algorithms):
         raise NotImplementedError()
 
+    instances = property(get_instances)
+    algorithms = property(get_algorithms)
+    
+
 class Plotter:
-    def plot(self, instance, algorithms):
+    def plot(self, plot_data):
         raise NotImplementedError()
