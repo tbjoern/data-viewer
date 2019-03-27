@@ -13,7 +13,7 @@ class Controller:
     def open_path(self, path):
         self.data_provider.open_path(path)
         instances = self.data_provider.instances
-        self.view.display_list(instances)
+        self.view.display_list(instances, None)
 
     def start(self):
         self.view.loop()

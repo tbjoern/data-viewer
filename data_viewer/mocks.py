@@ -13,6 +13,9 @@ class DataProviderMock(DataProvider):
     def get_plot_data(self, instance, algorithms):
         return [1,2,3,4,5]
 
+    instances = property(get_instances)
+    algorithms = property(get_algorithms)
+
 class PlotterMock(Plotter):
     def plot(self, plot_data):
         return {}
