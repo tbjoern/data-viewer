@@ -3,6 +3,11 @@ from data_viewer.interfaces import View
 from tkinter import *
 from tkinter import ttk
 
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 STICKY_ALL = (N,W,E,S)
 
 class Window(ttk.Frame):
@@ -32,10 +37,13 @@ class Window(ttk.Frame):
         self.rowconfigure(1, weight=0)
 
     def setup_plot_view(self):
-        image = PhotoImage(file='SuccessKid.gif')
-        self.plot_view = Label(self, image=image, bg='white')
-        self.plot_view.image = image
-        self.plot_view.grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2)
+        f = Figure(figsize=(5,5), dpi=100)
+        a = f.add_subplot(111)
+        a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
+
+        self.canvas = FigureCanvasTkAgg(f, self)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2)
 
     def setup_archive_selector(self):
         self.archive_selector = ArchiveSelector(self)
