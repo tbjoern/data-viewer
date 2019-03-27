@@ -1,6 +1,6 @@
 class Controller:
-    def __init__(self, view, data_provider, plotter):
-        self.view = view
+    def __init__(self, data_provider, plotter):
+        self.view = None
         self.data_provider = data_provider
         self.plotter = plotter
 
