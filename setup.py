@@ -10,6 +10,7 @@ Manage and plot experiment data
 long_description = open('README.md', 'r').read()
 
 dependencies = [
+    'matplotlib',
 ]
 
 dependency_links = [

@@ -2,6 +2,7 @@ from data_viewer.interfaces import View
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import filedialog
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -46,7 +47,7 @@ class Window(ttk.Frame):
         self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2)
 
     def setup_archive_selector(self):
-        self.archive_selector = ArchiveSelector(self)
+        self.archive_selector = ArchiveSelector(self, self.archive_selected)
         self.archive_selector.grid(column=0, row=1, sticky=STICKY_ALL)
 
     def setup_data_view(self):
@@ -63,6 +64,9 @@ class Window(ttk.Frame):
 
     def client_exit(self):
         exit()
+
+    def archive_selected(self):
+        pass
 
 class ScrollList(ttk.Frame):
     def __init__(self, master=None):
@@ -90,29 +94,39 @@ class ScrollList(ttk.Frame):
         self.listbox.delete(0, END)
 
 class ArchiveSelector(Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, button_handler=None):
         super().__init__(master)
         self.master = master
+        self.button_handler = button_handler
 
-        self.label = Label(self, text='open archive: <none>')
+        self.label = Label(self, text='selected archive: <none>')
         self.label.pack()
-        self.button = Button(self, text='select archive')
+        self.button = Button(self, text='select archive', command=self.on_button_press)
         self.button.pack()
 
-class TKView(View):
+    def on_button_press(self):
+        dir = filedialog.askdirectory()
+        self.label.config(text=f'selected archive: {dir}')
+        if self.button_handler:
+            self.button_handler(dir)
+
+class TKView(View, Window):
     def __init__(self, controller):
         self.controller = controller
-        self.root = Tk()
-        self.app = Window(self.root)
+        self.master = Tk()
+        Window.__init__(self, self.master)
 
     def loop(self):
-        self.root.mainloop()
+        self.master.mainloop()
 
     def display_list(self, items, handler):
-        view = self.app.data_view
+        view = self.data_view
         view.clear()
         for item in items:
             view.add_item(item)
 
     def display_plot(self, plot):
         raise NotImplementedError()
+
+    def archive_selected(self, path):
+        self.controller.open_path(path)
