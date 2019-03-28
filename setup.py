@@ -19,7 +19,7 @@ dependency_links = [
 
 test_dependencies = []
 
-scripts = ['run']
+scripts = ['data-viewer']
 
 setup(
     name='data_viewer',
