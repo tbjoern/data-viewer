@@ -2,12 +2,12 @@
 
 from data_viewer.controller import Controller
 from data_viewer.views.tkview import TKView
-from data_viewer.mocks import PlotterMock
+from data_viewer.plotter import MatplotlibPlotter
 from data_viewer.data_providers.csv_provider import CSVDataProvider
 
 def main():
     data_provider = CSVDataProvider()
-    plotter = PlotterMock()
+    plotter = MatplotlibPlotter()
 
     controller = Controller(data_provider, plotter)
     view = TKView(controller)

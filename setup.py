@@ -11,6 +11,7 @@ long_description = open('README.md', 'r').read()
 
 dependencies = [
     'matplotlib',
+    'numpy',
 ]
 
 dependency_links = [

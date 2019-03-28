@@ -29,7 +29,13 @@ class Window(ttk.Frame):
 
         self.setup_plot_view()
 
+        self.setup_plot_button()
+
         self.configure_grid()
+
+    def setup_plot_button(self):
+        self.plot_button = Button(self, text='Plot item', command=self.plot_button_pressed)
+        self.plot_button.grid(row=1, column=1, sticky=STICKY_ALL)
 
     def configure_grid(self):
         self.columnconfigure(0, weight=1)
@@ -66,6 +72,9 @@ class Window(ttk.Frame):
         exit()
 
     def archive_selected(self):
+        pass
+
+    def plot_button_pressed(self):
         pass
 
 class ScrollList(ttk.Frame):
@@ -126,7 +135,16 @@ class TKView(View, Window):
             view.add_item(item)
 
     def display_plot(self, plot):
-        raise NotImplementedError()
+        self.canvas.figure = plot
+        plot.canvas = self.canvas
+        self.canvas.draw()
+        self.configure()
 
     def archive_selected(self, path):
         self.controller.open_path(path)
+
+    def plot_button_pressed(self):
+        instance = self.data_view.selection_get()
+        print(instance)
+        if instance:
+            self.controller.handle_item_selected(instance)
