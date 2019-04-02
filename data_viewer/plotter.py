@@ -14,7 +14,7 @@ class MatplotlibPlotter(Plotter):
         filename = plot_data['filename']
         for algo_id, runs in data.items():
             data_array = []
-            for run_nr, run_data in runs.items():
+            for _, run_data in runs.items():
                 data_array.append(run_data['cut_weight'])
             min_length = None
             for run_data in data_array:

@@ -21,7 +21,7 @@ class CSVDataProvider:
         self.read_instances_from_path(path)
 
     def read_instances_from_path(self, path):
-        for dirpath, dirname, filenames in os.walk(path):
+        for dirpath, _, filenames in os.walk(path):
             self._instances.extend(
                 (dirpath, name, extension)
                 for name, extension in 
@@ -32,7 +32,7 @@ class CSVDataProvider:
 
     def read_algorithms_from_path(self, path):
         json_files = []
-        for dirpath, dirname, filenames in os.walk(path):
+        for dirpath, _, filenames in os.walk(path):
             json_files.extend(
                 os.path.join(dirpath, name + extension)
                 for name, extension in 
