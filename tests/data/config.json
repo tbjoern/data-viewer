@@ -1,0 +1,15 @@
+{
+    "iterations": 100,
+    "run_count": 2,
+    "parallel": 2,
+    "algorithms": [
+        {
+            "id": 0,
+            "name": "test_one"
+        },
+        {
+            "id": 1,
+            "name": "test_two"
+        }
+    ]
+}

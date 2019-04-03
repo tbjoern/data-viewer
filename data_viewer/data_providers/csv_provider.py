@@ -55,11 +55,17 @@ class CSVDataProvider:
             yield name
 
     def get_algorithms(self):
-        return self._algorithms
+        for algorithm in self._algorithms:
+            yield algorithm
 
     def get_plot_data(self, instance, algorithms):
-        
-        return self.read_csv_data(instance)
+        plot_data = self.read_csv_data(instance)
+        algorithm_ids = [id for _, id, _ in algorithms]
+        for key in list(plot_data['data'].keys()):
+            if key not in algorithm_ids:
+                plot_data['data'].pop(key, None)
+                plot_data['labels'].pop(key, None)
+        return plot_data
 
     def get_full_instance_path(self, instance):
         for dirpath, name, extension in self._instances:

@@ -17,7 +17,10 @@ dependencies = [
 dependency_links = [
 ]
 
-test_dependencies = []
+test_dependencies = [
+    'pytest',
+    'pytest-datadir',
+]
 
 scripts = ['data-viewer']
 
