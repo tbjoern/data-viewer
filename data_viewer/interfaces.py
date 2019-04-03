@@ -1,7 +1,7 @@
 import abc
 from collections import namedtuple
 
-Algorithm = namedtuple('Algorithm', ['name', 'id', 'arguments'])
+Algorithm = namedtuple('Algorithm', ['name', 'arguments'])
 
 class View:
     def display_list(self, list, handler):

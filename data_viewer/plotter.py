@@ -11,11 +11,9 @@ class MatplotlibPlotter(Plotter):
         plt = f.add_subplot(111)
         data = plot_data['data']
         labels = plot_data['labels']
-        filename = plot_data['filename']
-        for algo_id, runs in data.items():
-            data_array = []
-            for _, run_data in runs.items():
-                data_array.append(run_data['cut_weight'])
+        plot_name = plot_data['instance_name']
+        for algo_hash, runs in data.items():
+            data_array = data[algo_hash]
             min_length = None
             for run_data in data_array:
                 if min_length is None or len(run_data) < min_length:
@@ -25,11 +23,11 @@ class MatplotlibPlotter(Plotter):
             nparray = np.array(data_array)
             cut_weight_mean = nparray.mean(axis=0)
             sigma = nparray.std(axis=0)
-            color = self.colors[algo_id%len(self.colors)]
+            color = self.colors[algo_hash%len(self.colors)]
             fmt = '-'
             indices = np.arange(min_length)
-            plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_id], color=color)
+            plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
             plt.fill_between(indices, cut_weight_mean+sigma, cut_weight_mean-sigma, facecolor=color, alpha=0.5)
         plt.legend(loc='lower right', prop={'size': 6})
-        f.suptitle(filename)
+        f.suptitle(plot_name)
         return f

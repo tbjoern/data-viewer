@@ -5,66 +5,105 @@ import csv
 from functools import lru_cache
 from copy import deepcopy
 
+class InvalidDirFormat(Exception):
+    pass
+
 class CSVDataProvider:
     def __init__(self):
         self.path = None
-        self._instances = []
-        self._algorithms = []
+        self._instances = {}
+        self._algorithms = {}
 
     def open_path(self, path):
         self.path = path
-        self._instances = []
-        self._algorithms = []
+        self.add_run(path)
 
-        self.read_algorithms_from_path(path)
-        self.read_instances_from_path(path)
+    def add_run(self, path):
+        """
+        adds data from a directory
+        the directory should contain exactly one json file (config)
+        and arbitrary many .csv files (can also be in subdirs)
+        """
+        # read config, add algorithms to list, assign hashes
+        json_files = list(self.get_json_files_in_path(path))
+        if len(json_files) is not 1:
+            raise InvalidDirFormat(f"Path does not contain exactly one json file: {path}. Found {len(json_files)} files.")
+        
+        with open(json_files[0], 'r') as f:
+            config = json.load(f)
+
+        run_algorithms = []
+        
+        for algorithm_config in config['algorithms']:
+            arguments = algorithm_config['arguments'] if 'arguments' in config else None
+            algorithm = Algorithm(algorithm_config['name'], arguments)
+            algorithm_hash = hash(algorithm)
+            if not algorithm_hash in self._algorithms:
+                self._algorithms[algorithm_hash] = algorithm
+            run_algorithms.append((algorithm_hash, algorithm_config['id']))
+        
+        # for every instance, add metainfo on which algorithms (as hashes) are contained within
+        # maintain a hash-id mapping seperate for every instance
+        # also store the file path for every instance-algorithm pair
+
+        for dirpath, name, extension in self.read_instances_from_path(path):
+            if name not in self._instances:
+                self._instances[name] = { }
+            instance_path = os.path.join(dirpath, name + extension)
+            for algorithm_hash, algorithm_id in run_algorithms:
+                if algorithm_hash not in self._instances[name]:
+                    self._instances[name][algorithm_hash] = []
+                self._instances[name][algorithm_hash].append(
+                    (algorithm_id, instance_path)
+                )
+        
 
     def read_instances_from_path(self, path):
         for dirpath, _, filenames in os.walk(path):
-            self._instances.extend(
+            for instance in (
                 (dirpath, name, extension)
                 for name, extension in 
                 map(os.path.splitext, filenames) 
                 if extension == '.csv'
-            )
-        self._instances.sort(key=lambda x: x[1])
+            ):
+                yield instance
 
-    def read_algorithms_from_path(self, path):
-        json_files = []
+    def get_json_files_in_path(self, path):
         for dirpath, _, filenames in os.walk(path):
-            json_files.extend(
+            for json_file in (
                 os.path.join(dirpath, name + extension)
                 for name, extension in 
                 map(os.path.splitext, filenames) 
                 if extension == '.json'
-            )
-        for json_file in json_files:
-            print(json_file)
-            with open(json_file) as f:
-                config = json.load(f)
-            self.parse_json_config(config)
-        
-    def parse_json_config(self, config):
-        for algorithm_config in config['algorithms']:
-            arguments = algorithm_config['arguments'] if 'arguments' in config else None
-            self._algorithms.append(Algorithm(algorithm_config['name'], algorithm_config['id'], arguments))
+            ):
+                yield json_file
 
     def get_instances(self):
-        for _, name, _ in self._instances:
-            yield name
+        return self._instances.keys()
 
     def get_algorithms(self):
-        for algorithm in self._algorithms:
+        for algorithm in self._algorithms.values():
             yield algorithm
 
     def get_plot_data(self, instance, algorithms):
-        plot_data = deepcopy(self.read_csv_data(instance))
-        algorithm_ids = [id for _, id, _ in algorithms]
-        for key in list(plot_data['data'].keys()):
-            if key not in algorithm_ids:
-                plot_data['data'].pop(key, None)
-                plot_data['labels'].pop(key, None)
-        return plot_data
+        ret_data = {
+            'data': {},
+            'labels': {},
+            'instance_name': instance
+        }
+        for algorithm in algorithms:
+            algorithm_hash = hash(algorithm)
+            if not algorithm_hash in ret_data['data']:
+                ret_data['data'][algorithm_hash] = []
+                ret_data['labels'][algorithm_hash] = self.build_algorithm_name(self._algorithms[algorithm_hash])
+            for algorithm_id, instance_path in self._instances[instance][algorithm_hash]:
+                plot_data = self.read_csv_data(instance_path)
+                algorithm_data = plot_data[algorithm_id]
+                for run_nr, run_data in algorithm_data.items():
+                    ret_data['data'][algorithm_hash].append(
+                        list(run_data)
+                    )
+        return ret_data
 
     def get_full_instance_path(self, instance):
         for dirpath, name, extension in self._instances:
@@ -81,24 +120,20 @@ class CSVDataProvider:
         return " ".join(name_parts)
 
     @lru_cache(maxsize=10)
-    def read_csv_data(self, instance):
-        csv_path = self.get_full_instance_path(instance)
-        plot_data = { 'data': {}, 'labels': {}, 'filename': instance}
-        data = plot_data['data']
-        labels = plot_data['labels']
-        for algorithm in self._algorithms:
-            data[algorithm.id] = {}
-            labels[algorithm.id] = self.build_algorithm_name(algorithm)
+    def read_csv_data(self, csv_path):
+        data = {}
         print(f'reading {csv_path}')
         with open(csv_path, "r") as f:
             csvreader = csv.DictReader(f, delimiter=',')
             for row in csvreader:
                 algo_id = int(row["algorithm"])
+                if algo_id not in data:
+                    data[algo_id] = {}
                 run_nr = int(row["run_number"])
                 if not run_nr in data[algo_id]:
-                    data[algo_id][run_nr] = { 'cut_weight':[] }
-                data[algo_id][run_nr]['cut_weight'].append(int(row['cut_weight']))
-        return plot_data
+                    data[algo_id][run_nr] = []
+                data[algo_id][run_nr].append(int(row['cut_weight']))
+        return data
 
     instances = property(get_instances)
     algorithms = property(get_algorithms)
