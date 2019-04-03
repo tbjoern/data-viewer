@@ -26,7 +26,7 @@ scripts = ['data-viewer']
 
 setup(
     name='data_viewer',
-    version='0.1.0',
+    version='1.0.0',
 
     description=short_description,
     long_description=long_description,
