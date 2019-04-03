@@ -96,8 +96,7 @@ class CSVDataProvider:
                 algo_id = int(row["algorithm"])
                 run_nr = int(row["run_number"])
                 if not run_nr in data[algo_id]:
-                    data[algo_id][run_nr] = { 'iteration':[], 'cut_weight':[] }
-                data[algo_id][run_nr]['iteration'].append(int(row['iteration']))
+                    data[algo_id][run_nr] = { 'cut_weight':[] }
                 data[algo_id][run_nr]['cut_weight'].append(int(row['cut_weight']))
         return plot_data
 
