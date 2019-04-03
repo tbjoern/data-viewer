@@ -25,6 +25,8 @@ class Window(ttk.Frame):
 
         self.setup_data_view()
 
+        self.setup_algorithm_view()
+
         self.setup_archive_selector()
 
         self.setup_plot_view()
@@ -33,15 +35,20 @@ class Window(ttk.Frame):
 
         self.configure_grid()
 
+    def setup_algorithm_view(self):
+        self.algorithm_view = ScrollList(self, select_multiple=True)
+        self.algorithm_view.grid(column=0, row=1, sticky=STICKY_ALL)
+
     def setup_plot_button(self):
         self.plot_button = Button(self, text='Plot item', command=self.plot_button_pressed)
-        self.plot_button.grid(row=1, column=1, sticky=STICKY_ALL)
+        self.plot_button.grid(row=2, column=1, sticky=STICKY_ALL)
 
     def configure_grid(self):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=5)
-        self.rowconfigure(1, weight=0)
+        self.rowconfigure(1, weight=5)
+        self.rowconfigure(2, weight=0)
 
     def setup_plot_view(self):
         f = Figure(figsize=(5,5), dpi=100)
@@ -54,7 +61,7 @@ class Window(ttk.Frame):
 
     def setup_archive_selector(self):
         self.archive_selector = ArchiveSelector(self, self.archive_selected)
-        self.archive_selector.grid(column=0, row=1, sticky=STICKY_ALL)
+        self.archive_selector.grid(column=0, row=2, sticky=STICKY_ALL)
 
     def setup_data_view(self):
         self.data_view = ScrollList(self)
@@ -78,11 +85,14 @@ class Window(ttk.Frame):
         pass
 
 class ScrollList(ttk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, select_multiple=False):
         super().__init__(master)
         self.master = master
 
-        self.listbox = Listbox(self)
+        selectmode = 'multiple' if select_multiple else 'single'
+
+        self.listbox = Listbox(self, selectmode=selectmode)
+        self.listbox.configure(exportselection=False)
         self.listbox.grid(column=0, row=0, sticky=STICKY_ALL)
 
         self.scrollbar = Scrollbar(self, orient=VERTICAL, command=self.listbox.yview)
@@ -94,13 +104,16 @@ class ScrollList(ttk.Frame):
 
         self.items = []
 
-    def add_item(self, item):
+    def add_item(self, name, item):
         self.items.append(item)
-        self.listbox.insert('end', str(item))
+        self.listbox.insert('end', name)
 
     def clear(self):
         self.items = []
         self.listbox.delete(0, END)
+
+    def get_selection(self):
+        return [self.items[i] for i in self.listbox.curselection()]
 
 class ArchiveSelector(Frame):
     def __init__(self, master=None, button_handler=None):
@@ -128,11 +141,20 @@ class TKView(View, Window):
     def loop(self):
         self.master.mainloop()
 
-    def display_list(self, items, handler):
+    def display_instances(self, instances, handler):
         view = self.data_view
+        items = ((instance, instance) for instance in instances)
+        self.display_list(view, items, handler)
+
+    def display_algorithms(self, algorithms, handler):
+        view = self.algorithm_view
+        items = ((algorithm.name, algorithm) for algorithm in algorithms)
+        self.display_list(view, items, handler)
+    
+    def display_list(self, view, items, handler):
         view.clear()
-        for item in items:
-            view.add_item(item)
+        for name, item in items:
+            view.add_item(name, item)
 
     def display_plot(self, plot):
         self.canvas.figure = plot
@@ -143,8 +165,13 @@ class TKView(View, Window):
     def archive_selected(self, path):
         self.controller.open_path(path)
 
+    def get_selected_algorithms(self):
+        algorithms = self.algorithm_view.get_selection()
+        print(algorithms)
+        return algorithms
+
     def plot_button_pressed(self):
-        instance = self.data_view.selection_get()
+        instance = self.data_view.get_selection()[0]
         print(instance)
         if instance:
             self.controller.handle_item_selected(instance)

@@ -1,10 +1,7 @@
-from data_viewer.interfaces import DataProvider
+from data_viewer.interfaces import DataProvider, Algorithm
 import os
 import json
 import csv
-from collections import namedtuple
-
-Algorithm = namedtuple('Algorithm', ['name', 'id', 'arguments'])
 
 class CSVDataProvider:
     def __init__(self):
