@@ -2,6 +2,8 @@ from data_viewer.interfaces import DataProvider, Algorithm
 import os
 import json
 import csv
+from functools import lru_cache
+from copy import deepcopy
 
 class CSVDataProvider:
     def __init__(self):
@@ -56,7 +58,7 @@ class CSVDataProvider:
             yield algorithm
 
     def get_plot_data(self, instance, algorithms):
-        plot_data = self.read_csv_data(instance)
+        plot_data = deepcopy(self.read_csv_data(instance))
         algorithm_ids = [id for _, id, _ in algorithms]
         for key in list(plot_data['data'].keys()):
             if key not in algorithm_ids:
@@ -78,6 +80,7 @@ class CSVDataProvider:
                 name_parts.append(f"{key}={value}")
         return " ".join(name_parts)
 
+    @lru_cache(maxsize=10)
     def read_csv_data(self, instance):
         csv_path = self.get_full_instance_path(instance)
         plot_data = { 'data': {}, 'labels': {}, 'filename': instance}
