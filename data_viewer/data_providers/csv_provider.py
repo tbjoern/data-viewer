@@ -35,9 +35,12 @@ class CSVDataProvider:
         run_algorithms = []
         
         for algorithm_config in config['algorithms']:
-            arguments = algorithm_config['arguments'] if 'arguments' in config else None
+            if 'arguments' in algorithm_config:
+                arguments = algorithm_config['arguments']
+            else:
+                arguments = None
             algorithm = Algorithm(algorithm_config['name'], arguments)
-            algorithm_hash = hash(algorithm)
+            algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in self._algorithms:
                 self._algorithms[algorithm_hash] = algorithm
             run_algorithms.append((algorithm_hash, algorithm_config['id']))
@@ -56,6 +59,14 @@ class CSVDataProvider:
                 self._instances[name][algorithm_hash].append(
                     (algorithm_id, instance_path)
                 )
+
+    def hash(self, algorithm):
+        tokens = [algorithm.name]
+        if algorithm.arguments is not None:
+            for key, value in algorithm.arguments.items():
+                tokens.append(str(key))
+                tokens.append(str(value))
+        return "-".join(tokens)
         
 
     def read_instances_from_path(self, path):
@@ -92,7 +103,7 @@ class CSVDataProvider:
             'instance_name': instance
         }
         for algorithm in algorithms:
-            algorithm_hash = hash(algorithm)
+            algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in ret_data['data']:
                 ret_data['data'][algorithm_hash] = []
                 ret_data['labels'][algorithm_hash] = self.build_algorithm_name(self._algorithms[algorithm_hash])
@@ -112,10 +123,11 @@ class CSVDataProvider:
         raise IndexError(f'Instance not found: {instance}')
 
     def build_algorithm_name(self, algorithm):
+        print(algorithm)
         name_parts = list()
         name_parts.append(algorithm.name)
         if algorithm.arguments:
-            for key,value in algorithm["arguments"].items():
+            for key,value in algorithm.arguments.items():
                 name_parts.append(f"{key}={value}")
         return " ".join(name_parts)
 

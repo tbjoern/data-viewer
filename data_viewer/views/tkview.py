@@ -167,11 +167,9 @@ class TKView(View, Window):
 
     def get_selected_algorithms(self):
         algorithms = self.algorithm_view.get_selection()
-        print(algorithms)
         return algorithms
 
     def plot_button_pressed(self):
         instance = self.data_view.get_selection()[0]
-        print(instance)
         if instance:
             self.controller.handle_item_selected(instance)
