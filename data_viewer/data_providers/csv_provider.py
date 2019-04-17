@@ -40,6 +40,7 @@ class CSVDataProvider:
             else:
                 arguments = None
             algorithm = Algorithm(algorithm_config['name'], arguments)
+            algorithm = Algorithm(self.build_algorithm_name(algorithm), arguments)
             algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in self._algorithms:
                 self._algorithms[algorithm_hash] = algorithm
