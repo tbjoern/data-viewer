@@ -107,7 +107,7 @@ class CSVDataProvider:
             algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in ret_data['data']:
                 ret_data['data'][algorithm_hash] = []
-                ret_data['labels'][algorithm_hash] = self.build_algorithm_name(self._algorithms[algorithm_hash])
+                ret_data['labels'][algorithm_hash] = self._algorithms[algorithm_hash].name
             for algorithm_id, instance_path in self._instances[instance][algorithm_hash]:
                 plot_data = self.read_csv_data(instance_path)
                 algorithm_data = plot_data[algorithm_id]
