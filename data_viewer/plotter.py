@@ -6,7 +6,7 @@ class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = ['b','g','r','m','c','y','k','orange']
 
-    def plot(self, plot_data):
+    def plot(self, plot_data, iteration_limit=None):
         f = Figure()
         plt = f.add_subplot(111)
         data = plot_data['data']
@@ -19,6 +19,8 @@ class MatplotlibPlotter(Plotter):
             for run_data in data_array:
                 if min_length is None or len(run_data) < min_length:
                     min_length = len(run_data)
+            if iteration_limit is not None and min_length > iteration_limit:
+                min_length = iteration_limit
             for i, run_data in enumerate(data_array):
                 data_array[i] = run_data[:min_length]
             nparray = np.array(data_array)

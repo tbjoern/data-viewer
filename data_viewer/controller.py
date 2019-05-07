@@ -7,7 +7,7 @@ class Controller:
     def handle_item_selected(self, item):
         algorithms = self.view.get_selected_algorithms()
         data = self.data_provider.get_plot_data(item, algorithms)
-        plot = self.plotter.plot(data)
+        plot = self.plotter.plot(data, self.view.get_iteration_limit())
         self.view.display_plot(plot)
 
     def open_path(self, path):

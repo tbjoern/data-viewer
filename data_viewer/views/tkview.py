@@ -33,7 +33,13 @@ class Window(ttk.Frame):
 
         self.setup_plot_button()
 
+        self.setup_iteration_field()
+
         self.configure_grid()
+
+    def setup_iteration_field(self):
+        self.iteration_field = Entry(self)
+        self.iteration_field.grid(row=2, column=2, sticky=STICKY_ALL)
 
     def setup_algorithm_view(self):
         self.algorithm_view = ScrollList(self, select_multiple=True)
@@ -57,7 +63,7 @@ class Window(ttk.Frame):
 
         self.canvas = FigureCanvasTkAgg(f, self)
         self.canvas.draw()
-        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2)
+        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2, columnspan=2)
 
     def setup_archive_selector(self):
         self.archive_selector = ArchiveSelector(self, self.archive_selected)
@@ -173,3 +179,11 @@ class TKView(View, Window):
         instance = self.data_view.get_selection()[0]
         if instance:
             self.controller.handle_item_selected(instance)
+
+    def get_iteration_limit(self):
+        text = self.iteration_field.get()
+        try:
+            return int(text)
+        except:
+            return None
+
