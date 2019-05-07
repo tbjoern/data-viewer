@@ -2,6 +2,11 @@ from matplotlib.figure import Figure
 import numpy as np
 from data_viewer.interfaces import Plotter
 
+class Plot:
+    def __init__(self, figure, name):
+        self.figure = figure
+        self.name = name
+
 class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = ['b','g','r','m','c','y','k','orange']
@@ -34,4 +39,8 @@ class MatplotlibPlotter(Plotter):
             plot_nr += 1
         plt.legend(loc='lower right', prop={'size': 6})
         f.suptitle(plot_name)
-        return f
+        return Plot(f, plot_name)
+
+    def save_plot(self, plot):
+        plot.figure.savefig(plot.name + '.png')
+

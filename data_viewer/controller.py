@@ -19,3 +19,6 @@ class Controller:
 
     def start(self):
         self.view.loop()
+
+    def save_plot(self, plot):
+        self.plotter.save_plot(plot)

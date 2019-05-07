@@ -35,6 +35,8 @@ class Window(ttk.Frame):
 
         self.setup_iteration_field()
 
+        self.setup_export_button()
+
         self.configure_grid()
 
     def setup_iteration_field(self):
@@ -48,6 +50,10 @@ class Window(ttk.Frame):
     def setup_plot_button(self):
         self.plot_button = Button(self, text='Plot item', command=self.plot_button_pressed)
         self.plot_button.grid(row=2, column=1, sticky=STICKY_ALL)
+
+    def setup_export_button(self):
+        self.export_button = Button(self, text='Export', command=self.export_button_pressed)
+        self.export_button.grid(row=2, column=3, sticky=STICKY_ALL)
 
     def configure_grid(self):
         self.columnconfigure(0, weight=1)
@@ -63,7 +69,7 @@ class Window(ttk.Frame):
 
         self.canvas = FigureCanvasTkAgg(f, self)
         self.canvas.draw()
-        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2, columnspan=2)
+        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2, columnspan=3)
 
     def setup_archive_selector(self):
         self.archive_selector = ArchiveSelector(self, self.archive_selected)
@@ -88,6 +94,9 @@ class Window(ttk.Frame):
         pass
 
     def plot_button_pressed(self):
+        pass
+
+    def export_button_pressed(self):
         pass
 
 class ScrollList(ttk.Frame):
@@ -163,8 +172,9 @@ class TKView(View, Window):
             view.add_item(name, item)
 
     def display_plot(self, plot):
-        self.canvas.figure = plot
-        plot.canvas = self.canvas
+        self.current_plot = plot
+        self.canvas.figure = self.current_plot.figure
+        self.current_plot.figure.canvas = self.canvas
         self.canvas.draw()
         self.configure()
 
@@ -187,3 +197,5 @@ class TKView(View, Window):
         except:
             return None
 
+    def export_button_pressed(self):
+        self.controller.save_plot(self.current_plot)
