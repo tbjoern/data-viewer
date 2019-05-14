@@ -19,7 +19,8 @@ class MatplotlibPlotter(Plotter):
         plot_name = plot_data['instance_name']
         plot_nr = 0
         for algo_hash, runs in data.items():
-            data_array = data[algo_hash]
+            data_array = [list(list(zip(*l))[1]) for l in data[algo_hash]]
+            indices = list(list(zip(*data[algo_hash][0]))[0])
             min_length = None
             for run_data in data_array:
                 if min_length is None or len(run_data) < min_length:
@@ -33,7 +34,7 @@ class MatplotlibPlotter(Plotter):
             sigma = nparray.std(axis=0)
             color = self.colors[plot_nr%len(self.colors)]
             fmt = '-'
-            indices = np.arange(min_length)
+            indices = indices[:min_length]
             plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
             plt.fill_between(indices, cut_weight_mean+sigma, cut_weight_mean-sigma, facecolor=color, alpha=0.5)
             plot_nr += 1
