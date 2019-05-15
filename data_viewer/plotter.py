@@ -38,7 +38,8 @@ class MatplotlibPlotter(Plotter):
             plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
             plt.fill_between(indices, cut_weight_mean+sigma, cut_weight_mean-sigma, facecolor=color, alpha=0.5)
             plot_nr += 1
-        plt.legend(loc='lower right', prop={'size': 6})
+        plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0., prop={'size': 6})
         f.suptitle(plot_name)
         return Plot(f, plot_name)
 
