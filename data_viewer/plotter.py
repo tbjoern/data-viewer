@@ -34,19 +34,16 @@ class MatplotlibPlotter(Plotter):
             if iteration_limit_index is not None:
                 if min_length > iteration_limit_index:
                     min_length = iteration_limit_index
-            print(min_length)
-            print(iteration_limit)
-            print(iteration_limit_index)
             for i, run_data in enumerate(data_array):
                 data_array[i] = run_data[:min_length]
             nparray = np.array(data_array)
             cut_weight_mean = nparray.mean(axis=0)
-            sigma = nparray.std(axis=0)
+            # sigma = nparray.std(axis=0)
             color = self.colors[plot_nr%len(self.colors)]
             fmt = '-'
             indices = indices[:min_length]
             plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
-            plt.fill_between(indices, cut_weight_mean+sigma, cut_weight_mean-sigma, facecolor=color, alpha=0.5)
+            plt.fill_between(indices, np.amax(nparray, axis=0), np.amin(nparray, axis=0), facecolor=color, alpha=0.5)
             plot_nr += 1
         plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
            ncol=2, mode="expand", borderaxespad=0., prop={'size': 6})
