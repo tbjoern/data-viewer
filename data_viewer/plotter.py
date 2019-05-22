@@ -25,8 +25,18 @@ class MatplotlibPlotter(Plotter):
             for run_data in data_array:
                 if min_length is None or len(run_data) < min_length:
                     min_length = len(run_data)
-            if iteration_limit is not None and min_length > iteration_limit:
-                min_length = iteration_limit
+            iteration_limit_index = None
+            if iteration_limit is not None:
+                for i, iteration in enumerate(indices):
+                    if iteration >= iteration_limit:
+                        iteration_limit_index = i
+                        break
+            if iteration_limit_index is not None:
+                if min_length > iteration_limit_index:
+                    min_length = iteration_limit_index
+            print(min_length)
+            print(iteration_limit)
+            print(iteration_limit_index)
             for i, run_data in enumerate(data_array):
                 data_array[i] = run_data[:min_length]
             nparray = np.array(data_array)
