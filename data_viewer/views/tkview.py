@@ -44,7 +44,7 @@ class Window(ttk.Frame):
         self.iteration_field.grid(row=2, column=2, sticky=STICKY_ALL)
 
     def setup_algorithm_view(self):
-        self.algorithm_view = ScrollList(self, select_multiple=True)
+        self.algorithm_view = AlgorithmView(self)
         self.algorithm_view.grid(column=0, row=1, sticky=STICKY_ALL)
 
     def setup_plot_button(self):
@@ -117,10 +117,10 @@ class ScrollList(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        self.items = []
+        self.items = {}
 
     def add_item(self, name, item):
-        self.items.append(item)
+        self.items[name] = item
         self.listbox.insert('end', name)
 
     def clear(self):
@@ -146,6 +146,41 @@ class ArchiveSelector(Frame):
         self.label.config(text=f'selected archive: {dir}')
         if self.button_handler:
             self.button_handler(dir)
+
+class AlgorithmView(Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master = master
+
+        self.algorithm_view = ScrollList(self, select_multiple=True)
+        self.algorithm_view.grid(row=0, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=2)
+        self.filter_button = Button(self, text='Filter', command=self.on_filter_button_press)
+        self.filter_button.grid(row=1, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=1)
+        self.filter_field = Entry(self)
+        self.filter_field.grid(row=1, column=1, sticky=STICKY_ALL, rowspan=1, columnspan=1)
+        self.select_all_button = Button(self, text='select all', command=self.select_all)
+        self.select_all_button.grid(row=2, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=2)
+
+        self.columnconfigure(0, weight=0)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=0)
+        self.rowconfigure(2, weight=0)
+    
+    def clear(self):
+        self.algorithm_view.clear()
+
+    def add_item(self, name, item):
+        self.algorithm_view.add_item(name, item)
+    
+    def get_selection(self):
+        return self.algorithm_view.get_selection()
+
+    def on_filter_button_press(self):
+        pass
+
+    def select_all(self):
+        pass
 
 class TKView(View, Window):
     def __init__(self, controller):
