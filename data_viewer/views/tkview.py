@@ -124,11 +124,30 @@ class ScrollList(ttk.Frame):
         self.listbox.insert('end', name)
 
     def clear(self):
-        self.items = []
+        self.items = {}
         self.listbox.delete(0, END)
 
+    def filter(self, matcher, mode):
+        if mode == 'add':
+            for index, name in enumerate(self.listbox.get(0, 'end')):
+                if matcher(name):
+                    self.listbox.selection_set(index)
+        elif mode == 'remove':
+            selected_items = ((index, self.listbox.get(index)) for index in self.listbox.curselection())
+            for index, name in selected_items:
+                if matcher(name):
+                    self.listbox.selection_clear(index)
+
     def get_selection(self):
-        return [self.items[i] for i in self.listbox.curselection()]
+        return [self.items[self.listbox.get(i)] for i in self.listbox.curselection()]
+
+    def toggle_select_all(self):
+        selected_items = self.listbox.curselection()
+        all_items = self.listbox.get(0, 'end')
+        if len(selected_items) == len(all_items):
+            self.listbox.selection_clear(0, 'end')
+        else:
+            self.listbox.selection_set(0, 'end')
 
 class ArchiveSelector(Frame):
     def __init__(self, master=None, button_handler=None):
@@ -153,16 +172,19 @@ class AlgorithmView(Frame):
         self.master = master
 
         self.algorithm_view = ScrollList(self, select_multiple=True)
-        self.algorithm_view.grid(row=0, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=2)
-        self.filter_button = Button(self, text='Filter', command=self.on_filter_button_press)
+        self.algorithm_view.grid(row=0, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=3)
+        self.filter_button = Button(self, text='Add', command=self.filter_add)
         self.filter_button.grid(row=1, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=1)
+        self.filter_button = Button(self, text='Remove', command=self.filter_remove)
+        self.filter_button.grid(row=1, column=1, sticky=STICKY_ALL, rowspan=1, columnspan=1)
         self.filter_field = Entry(self)
-        self.filter_field.grid(row=1, column=1, sticky=STICKY_ALL, rowspan=1, columnspan=1)
+        self.filter_field.grid(row=1, column=2, sticky=STICKY_ALL, rowspan=1, columnspan=1)
         self.select_all_button = Button(self, text='select all', command=self.select_all)
-        self.select_all_button.grid(row=2, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=2)
+        self.select_all_button.grid(row=2, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=3)
 
         self.columnconfigure(0, weight=0)
-        self.columnconfigure(1, weight=1)
+        self.columnconfigure(1, weight=0)
+        self.columnconfigure(2, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
         self.rowconfigure(2, weight=0)
@@ -176,11 +198,31 @@ class AlgorithmView(Frame):
     def get_selection(self):
         return self.algorithm_view.get_selection()
 
-    def on_filter_button_press(self):
-        pass
+    def filter_add(self):
+        self.on_filter_button_press(mode='add')
+
+    def filter_remove(self):
+        self.on_filter_button_press(mode='remove')
+
+    def parse_filter_field(self):
+        filter_text = self.filter_field.get()
+        filter = filter_text.split(',')
+        filter = [t.strip() for t in filter]
+        if filter_text == '':
+            filter = []
+        return filter
+
+    def on_filter_button_press(self, mode):
+        filter = self.parse_filter_field()
+        def matcher(item):
+            for token in filter:
+                if not token in item:
+                    return False
+            return True
+        self.algorithm_view.filter(matcher, mode)
 
     def select_all(self):
-        pass
+        self.algorithm_view.toggle_select_all()
 
 class TKView(View, Window):
     def __init__(self, controller):
@@ -198,8 +240,7 @@ class TKView(View, Window):
 
     def display_algorithms(self, algorithms, handler):
         view = self.algorithm_view
-        items = ((algorithm.name, algorithm) for algorithm in algorithms)
-        self.display_list(view, items, handler)
+        self.display_list(view, algorithms, handler)
     
     def display_list(self, view, items, handler):
         view.clear()

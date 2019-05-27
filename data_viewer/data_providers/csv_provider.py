@@ -40,7 +40,6 @@ class CSVDataProvider:
             else:
                 arguments = None
             algorithm = Algorithm(algorithm_config['name'], arguments)
-            algorithm = Algorithm(self.build_algorithm_name(algorithm), arguments)
             algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in self._algorithms:
                 self._algorithms[algorithm_hash] = algorithm
@@ -107,7 +106,7 @@ class CSVDataProvider:
             algorithm_hash = self.hash(algorithm)
             if not algorithm_hash in ret_data['data']:
                 ret_data['data'][algorithm_hash] = []
-                ret_data['labels'][algorithm_hash] = self._algorithms[algorithm_hash].name
+                ret_data['labels'][algorithm_hash] = self.build_algorithm_name(algorithm)
             for algorithm_id, instance_path in self._instances[instance][algorithm_hash]:
                 plot_data = self.read_csv_data(instance_path)
                 algorithm_data = plot_data[algorithm_id]
@@ -124,7 +123,7 @@ class CSVDataProvider:
         raise IndexError(f'Instance not found: {instance}')
 
     def build_algorithm_name(self, algorithm):
-        print(algorithm)
+        # print(algorithm)
         name_parts = list()
         name_parts.append(algorithm.name)
         if algorithm.arguments:
