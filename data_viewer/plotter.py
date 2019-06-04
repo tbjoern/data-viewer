@@ -45,8 +45,16 @@ class MatplotlibPlotter(Plotter):
             plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
             plt.fill_between(indices, np.amax(nparray, axis=0), np.amin(nparray, axis=0), facecolor=color, alpha=0.5)
             plot_nr += 1
-        plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0., prop={'size': 6})
+        # plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+        #    ncol=1, mode="expand", borderaxespad=0., prop={'size': 6})
+        # Shrink current axis's height by 10% on the bottom
+        box = plt.get_position()
+        plt.set_position([box.x0, box.y0 + box.height * 0.1,
+                        box.width, box.height * 0.9])
+
+        # Put a legend below current axis
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+                fancybox=True, shadow=True, ncol=1)
         f.suptitle(plot_name)
         return Plot(f, plot_name)
 
