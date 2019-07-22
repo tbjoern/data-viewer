@@ -34,16 +34,28 @@ class CSVDataProvider:
 
         run_algorithms = []
         
-        for algorithm_config in config['algorithms']:
-            if 'arguments' in algorithm_config:
-                arguments = algorithm_config['arguments']
-            else:
-                arguments = None
-            algorithm = Algorithm(algorithm_config['name'], arguments)
-            algorithm_hash = self.hash(algorithm)
-            if not algorithm_hash in self._algorithms:
-                self._algorithms[algorithm_hash] = algorithm
-            run_algorithms.append((algorithm_hash, algorithm_config['id']))
+        if 'algorithms' in config:
+            for algorithm_config in config['algorithms']:
+                if 'arguments' in algorithm_config:
+                    arguments = algorithm_config['arguments']
+                else:
+                    arguments = None
+                algorithm = Algorithm(algorithm_config['name'], arguments)
+                algorithm_hash = self.hash(algorithm)
+                if not algorithm_hash in self._algorithms:
+                    self._algorithms[algorithm_hash] = algorithm
+                run_algorithms.append((algorithm_hash, algorithm_config['id']))
+        else:
+            for mutation_operator_config in config['mutators']:
+                if 'arguments' in mutation_operator_config:
+                    arguments = mutation_operator_config['arguments']
+                else:
+                    arguments = None
+                algorithm = Algorithm(mutation_operator_config['type'], arguments)
+                algorithm_hash = self.hash(algorithm)
+                if not algorithm_hash in self._algorithms:
+                    self._algorithms[algorithm_hash] = algorithm
+                run_algorithms.append((algorithm_hash, mutation_operator_config['id']))
         
         # for every instance, add metainfo on which algorithms (as hashes) are contained within
         # maintain a hash-id mapping seperate for every instance
@@ -137,14 +149,25 @@ class CSVDataProvider:
         print(f'reading {csv_path}')
         with open(csv_path, "r") as f:
             csvreader = csv.DictReader(f, delimiter=',')
-            for row in csvreader:
-                algo_id = int(row["algorithm"])
-                if algo_id not in data:
-                    data[algo_id] = {}
-                run_nr = int(row["run_number"])
-                if not run_nr in data[algo_id]:
-                    data[algo_id][run_nr] = []
-                data[algo_id][run_nr].append((int(row['iteration']), int(row['cut_weight'])))
+            csvreader.fieldnames = [x.strip() for x in csvreader.fieldnames]
+            if 'algorithm' in csvreader.fieldnames:
+                for row in csvreader:
+                    algo_id = int(row["algorithm"])
+                    if algo_id not in data:
+                        data[algo_id] = {}
+                    run_nr = int(row["run_number"])
+                    if not run_nr in data[algo_id]:
+                        data[algo_id][run_nr] = []
+                    data[algo_id][run_nr].append((int(row['iteration']), int(row['cut_weight'])))
+            else:
+                for row in csvreader:
+                    algo_id = int(row["id"])
+                    if algo_id not in data:
+                        data[algo_id] = {}
+                    run_nr = int(row["run"])
+                    if not run_nr in data[algo_id]:
+                        data[algo_id][run_nr] = []
+                    data[algo_id][run_nr].append((int(row['generation']), int(row['fitness'])))
         return data
 
     instances = property(get_instances)

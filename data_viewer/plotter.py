@@ -20,6 +20,10 @@ class MatplotlibPlotter(Plotter):
         plot_nr = 0
         for algo_hash, runs in data.items():
             data_array = [list(list(zip(*l))[1]) for l in data[algo_hash]]
+            for i,array in enumerate(data_array):
+                np_array = np.array(array)
+                np_array = np.maximum.accumulate(np_array)
+                data_array[i] = np_array
             indices = list(list(zip(*data[algo_hash][0]))[0])
             min_length = None
             for run_data in data_array:
