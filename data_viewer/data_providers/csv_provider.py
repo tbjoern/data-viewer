@@ -167,7 +167,7 @@ class CSVDataProvider:
                     run_nr = int(row["run"])
                     if not run_nr in data[algo_id]:
                         data[algo_id][run_nr] = []
-                    data[algo_id][run_nr].append((int(row['generation']), int(row['fitness'])))
+                    data[algo_id][run_nr].append((int(row['generation']), float(row['fitness'])))
         return data
 
     instances = property(get_instances)
