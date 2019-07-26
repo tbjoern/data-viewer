@@ -11,20 +11,21 @@ class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = ['b','g','r','m','c','y','k','orange']
 
-    def plot(self, plot_data, iteration_limit=None):
+    def plot(self, plot_data, iteration_limit=None, axes):
         f = Figure()
         plt = f.add_subplot(111)
         data = plot_data['data']
         labels = plot_data['labels']
         plot_name = plot_data['instance_name']
         plot_nr = 0
+        xaxis, yaxis = axes
         for algo_hash, runs in data.items():
-            data_array = [list(list(zip(*l))[1]) for l in data[algo_hash]]
+            data_array = [list(list(zip(*l))[yaxis]) for l in data[algo_hash]]
             for i,array in enumerate(data_array):
                 np_array = np.array(array)
                 np_array = np.maximum.accumulate(np_array)
                 data_array[i] = np_array
-            indices = list(list(zip(*data[algo_hash][0]))[0])
+            indices = list(list(zip(*data[algo_hash][xaxis]))[0])
             min_length = None
             for run_data in data_array:
                 if min_length is None or len(run_data) < min_length:

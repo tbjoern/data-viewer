@@ -4,10 +4,14 @@ class Controller:
         self.data_provider = data_provider
         self.plotter = plotter
 
+    def item_metadata(self, item):
+        return self.data_provider.get_item_metadata(item)
+
     def handle_item_selected(self, item):
         algorithms = self.view.get_selected_algorithms()
         data = self.data_provider.get_plot_data(item, algorithms)
-        plot = self.plotter.plot(data, self.view.get_iteration_limit())
+        axes = self.view.get_selected_axes()
+        plot = self.plotter.plot(data, self.view.get_iteration_limit(), axes)
         self.view.display_plot(plot)
 
     def open_path(self, path):

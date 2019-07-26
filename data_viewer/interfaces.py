@@ -20,11 +20,13 @@ class DataProvider:
         raise NotImplementedError()
     def get_plot_data(self, instance, algorithms):
         raise NotImplementedError()
+    def get_item_metadata(self, instance):
+        raise NotImplementedError()
 
     instances = property(get_instances)
     algorithms = property(get_algorithms)
     
 
 class Plotter:
-    def plot(self, plot_data):
+    def plot(self, plot_data, axes):
         raise NotImplementedError()

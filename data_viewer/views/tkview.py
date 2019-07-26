@@ -275,3 +275,6 @@ class TKView(View, Window):
 
     def export_button_pressed(self):
         self.controller.save_plot(self.current_plot)
+    
+    def get_selected_axes():
+        return (0,1)
