@@ -8,6 +8,26 @@ from copy import deepcopy
 class InvalidDirFormat(Exception):
     pass
 
+# self._instances = {
+#     "name_of_instance": {
+#         "algorithm xyz hash": [
+#             (0, "path/to/csvfile"),
+#             (7, "path/to/different/csvfile"),
+#         ].
+#         ...
+#     },
+#     ...
+# }
+# self._algorithms = {
+#     "algorithms xyz hash": {
+#         Algorithm(
+#             name,
+#             arguments: {
+#                 key: value
+#             }
+#         )
+#     }
+# }
 class CSVDataProvider:
     def __init__(self):
         self.path = None
@@ -16,9 +36,9 @@ class CSVDataProvider:
 
     def open_path(self, path):
         self.path = path
-        self.add_run(path)
+        self.add_directory(path)
 
-    def add_run(self, path):
+    def add_directory(self, path):
         """
         adds data from a directory
         the directory should contain exactly one json file (config)
@@ -145,20 +165,37 @@ class CSVDataProvider:
 
     @lru_cache(maxsize=10)
     def read_csv_data(self, csv_path):
+        # data = {
+        #     "4": { # algorithm id
+        #         "0" : [ # run number
+        #             (generation, fitness, ...)
+        #         ],
+        #         "1" : [
+        #             ....
+        #         ],
+        #         ...
+        #     },
+        #     ...
+        # }
         data = {}
         print(f'reading {csv_path}')
         with open(csv_path, "r") as f:
             csvreader = csv.DictReader(f, delimiter=',')
             csvreader.fieldnames = [x.strip() for x in csvreader.fieldnames]
-            if 'algorithm' in csvreader.fieldnames:
+            if 'total_time' in csvreader.fieldnames:
                 for row in csvreader:
-                    algo_id = int(row["algorithm"])
+                    algo_id = int(row["id"])
                     if algo_id not in data:
                         data[algo_id] = {}
-                    run_nr = int(row["run_number"])
+                    run_nr = int(row["run"])
                     if not run_nr in data[algo_id]:
                         data[algo_id][run_nr] = []
-                    data[algo_id][run_nr].append((int(row['iteration']), int(row['cut_weight'])))
+                    data[algo_id][run_nr].append((
+                        int(row['generation']),
+                        int(row['fitness']),
+                        int(row['total_time']),
+                        int(row['flips']),
+                    ))
             else:
                 for row in csvreader:
                     algo_id = int(row["id"])
@@ -167,7 +204,14 @@ class CSVDataProvider:
                     run_nr = int(row["run"])
                     if not run_nr in data[algo_id]:
                         data[algo_id][run_nr] = []
-                    data[algo_id][run_nr].append((int(row['generation']), float(row['fitness'])))
+                    data[algo_id][run_nr].append((
+                        int(row['generation']), 
+                        int(row['fitness']),
+                        int(row['mutation_time']),
+                        int(row['flips']),
+                        int(row['obcalls']),
+                        int(row['improved']),
+                    ))
         return data
 
     instances = property(get_instances)
