@@ -128,6 +128,21 @@ class CSVDataProvider:
         for algorithm in self._algorithms.values():
             yield algorithm
 
+    def get_item_metadata(self, instance):
+        metadata = {
+            "fieldnames": None
+        }
+        fieldnames = []
+        non_data_fields = ['id', 'run']
+        for algorithm_hash, id_path_pairs in self._instances[instance].items():
+            for algorithm_id, path in id_path_pairs:
+                instance_fieldnames = self.read_csv_header(path)
+                for field in instance_fieldnames:
+                    if not field in fieldnames and not field in non_data_fields:
+                        fieldnames.append(field)
+        metadata["fieldnames"] = fieldnames
+        return metadata
+
     def get_plot_data(self, instance, algorithms):
         ret_data = {
             'data': {},
@@ -164,6 +179,13 @@ class CSVDataProvider:
         return " ".join(name_parts)
 
     @lru_cache(maxsize=10)
+    def read_csv_header(self, csv_path):
+        with open(csv_path, "r") as f:
+            csvreader = csv.DictReader(f, delimiter=',')
+            csvreader.fieldnames = [x.strip() for x in csvreader.fieldnames]
+            return list(csvreader.fieldnames)
+
+    @lru_cache(maxsize=10)
     def read_csv_data(self, csv_path):
         # data = {
         #     "4": { # algorithm id
@@ -182,36 +204,18 @@ class CSVDataProvider:
         with open(csv_path, "r") as f:
             csvreader = csv.DictReader(f, delimiter=',')
             csvreader.fieldnames = [x.strip() for x in csvreader.fieldnames]
-            if 'total_time' in csvreader.fieldnames:
-                for row in csvreader:
-                    algo_id = int(row["id"])
-                    if algo_id not in data:
-                        data[algo_id] = {}
-                    run_nr = int(row["run"])
-                    if not run_nr in data[algo_id]:
-                        data[algo_id][run_nr] = []
-                    data[algo_id][run_nr].append((
-                        int(row['generation']),
-                        int(row['fitness']),
-                        int(row['total_time']),
-                        int(row['flips']),
-                    ))
-            else:
-                for row in csvreader:
-                    algo_id = int(row["id"])
-                    if algo_id not in data:
-                        data[algo_id] = {}
-                    run_nr = int(row["run"])
-                    if not run_nr in data[algo_id]:
-                        data[algo_id][run_nr] = []
-                    data[algo_id][run_nr].append((
-                        int(row['generation']), 
-                        int(row['fitness']),
-                        int(row['mutation_time']),
-                        int(row['flips']),
-                        int(row['obcalls']),
-                        int(row['improved']),
-                    ))
+            datafields = [x for x in csvreader.fieldnames if x not in ['id','run']]
+            for row in csvreader:
+                algo_id = int(row["id"])
+                if algo_id not in data:
+                    data[algo_id] = {}
+                run_nr = int(row["run"])
+                if not run_nr in data[algo_id]:
+                    data[algo_id][run_nr] = []
+                datapoints = []
+                for field in datafields:
+                    datapoints.append(int(row[field]))
+                data[algo_id][run_nr].append(tuple(datapoints))
         return data
 
     instances = property(get_instances)

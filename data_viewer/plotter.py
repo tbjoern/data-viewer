@@ -11,7 +11,7 @@ class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = ['b','g','r','m','c','y','k','orange']
 
-    def plot(self, plot_data, iteration_limit=None, axes):
+    def plot(self, plot_data, iteration_limit=None, axes=(0,1)):
         f = Figure()
         plt = f.add_subplot(111)
         data = plot_data['data']

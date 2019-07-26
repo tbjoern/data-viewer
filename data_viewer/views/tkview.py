@@ -67,16 +67,30 @@ class Window(ttk.Frame):
         a = f.add_subplot(111)
         a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
 
-        self.canvas = FigureCanvasTkAgg(f, self)
+        self.plot_view = Frame(self)
+        self.plot_view.grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2, columnspan=3)
+        self.plot_view.columnconfigure(0, weight=1)
+        self.plot_view.rowconfigure(0, weight=1)
+        self.plot_view.rowconfigure(1, weight=0)
+
+        self.axes_buttons = Frame(self.plot_view)
+        self.axes_buttons.grid(row=1, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=1)
+        self.axes_buttons.columnconfigure(0, weight=1)
+        self.xaxis_radio_buttons = ButtonArray(self.axes_buttons)
+        self.yaxis_radio_buttons = ButtonArray(self.axes_buttons)
+        self.xaxis_radio_buttons.grid(row=0, column=0, sticky=STICKY_ALL)
+        self.yaxis_radio_buttons.grid(row=1, column=0, sticky=STICKY_ALL)
+
+        self.canvas = FigureCanvasTkAgg(f, self.plot_view)
         self.canvas.draw()
-        self.canvas.get_tk_widget().grid(row=0, column=1, sticky=STICKY_ALL, rowspan=2, columnspan=3)
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=STICKY_ALL, rowspan=1, columnspan=1)
 
     def setup_archive_selector(self):
         self.archive_selector = ArchiveSelector(self, self.archive_selected)
         self.archive_selector.grid(column=0, row=2, sticky=STICKY_ALL)
 
     def setup_data_view(self):
-        self.data_view = ScrollList(self)
+        self.data_view = ScrollList(self, onselect=self.data_selected)
         self.data_view.grid(column=0, row=0, sticky=STICKY_ALL)
 
     def setup_menu(self):
@@ -99,8 +113,30 @@ class Window(ttk.Frame):
     def export_button_pressed(self):
         pass
 
+    def data_selected(self, event):
+        pass
+
+class ButtonArray(Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+
+        self.radio_buttons = []
+        self.selection = IntVar()
+
+    def clear(self):
+        for button in self.radio_buttons:
+            button.destroy()
+
+    def set_choices(self, choices):
+        self.clear()
+        for choice_name, choice_value in choices:
+            radio_button = Radiobutton(self, text=choice_name, variable=self.selection, value=choice_value, indicatoron=0)
+            radio_button.pack(side=LEFT, fill=BOTH, expand=True)
+            self.radio_buttons.append(radio_button)
+
+
 class ScrollList(ttk.Frame):
-    def __init__(self, master=None, select_multiple=False):
+    def __init__(self, master=None, select_multiple=False, onselect=None):
         super().__init__(master)
         self.master = master
 
@@ -109,6 +145,9 @@ class ScrollList(ttk.Frame):
         self.listbox = Listbox(self, selectmode=selectmode)
         self.listbox.configure(exportselection=False)
         self.listbox.grid(column=0, row=0, sticky=STICKY_ALL)
+
+        if onselect is not None:
+            self.listbox.bind('<<ListboxSelect>>', onselect)
 
         self.scrollbar = Scrollbar(self, orient=VERTICAL, command=self.listbox.yview)
         self.listbox.configure(yscrollcommand=self.scrollbar.set)
@@ -276,5 +315,16 @@ class TKView(View, Window):
     def export_button_pressed(self):
         self.controller.save_plot(self.current_plot)
     
-    def get_selected_axes():
-        return (0,1)
+    def get_selected_axes(self):
+        xaxis = self.xaxis_radio_buttons.selection.get()
+        yaxis = self.yaxis_radio_buttons.selection.get()
+        return (xaxis, yaxis)
+
+    def data_selected(self, event):
+        instance = self.data_view.get_selection()[0]
+        metadata = self.controller.item_metadata(instance)
+        axes_choices = []
+        for i, field in enumerate(metadata['fieldnames']):
+            axes_choices.append((field,i))
+        self.xaxis_radio_buttons.set_choices(axes_choices)
+        self.yaxis_radio_buttons.set_choices(axes_choices)
