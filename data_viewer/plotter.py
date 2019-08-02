@@ -7,6 +7,20 @@ class Plot:
         self.figure = figure
         self.name = name
 
+def get_axis_data(axis, algo_data):
+    data_array = [list(list(zip(*l))[axis]) for l in algo_data]
+    for i,array in enumerate(data_array):
+        np_array = np.array(array)
+        np_array = np.maximum.accumulate(np_array)
+        data_array[i] = np_array
+    min_length = None
+    for run_data in data_array:
+        if min_length is None or len(run_data) < min_length:
+            min_length = len(run_data)
+    for i, run_data in enumerate(data_array):
+        data_array[i] = run_data[:min_length]
+    return data_array
+
 class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = ['b','g','r','m','c','y','k','orange']
@@ -20,35 +34,32 @@ class MatplotlibPlotter(Plotter):
         plot_nr = 0
         xaxis, yaxis = axes
         for algo_hash, runs in data.items():
-            data_array = [list(list(zip(*l))[yaxis]) for l in data[algo_hash]]
-            for i,array in enumerate(data_array):
-                np_array = np.array(array)
-                np_array = np.maximum.accumulate(np_array)
-                data_array[i] = np_array
-            indices = list(list(zip(*data[algo_hash][xaxis]))[0])
-            min_length = None
-            for run_data in data_array:
-                if min_length is None or len(run_data) < min_length:
-                    min_length = len(run_data)
-            iteration_limit_index = None
+            indices = get_axis_data(xaxis, data[algo_hash])
+            indices_nparray = np.array(indices)
+            indices_mean = indices_nparray.mean(axis=0)
+            
+            data_array = get_axis_data(yaxis, data[algo_hash])
+            data_nparray = np.array(data_array)
+            data_mean = data_nparray.mean(axis=0)
+            data_max = np.amax(data_nparray, axis=0)
+            data_min = np.amin(data_nparray, axis=0)
+
             if iteration_limit is not None:
-                for i, iteration in enumerate(indices):
-                    if iteration >= iteration_limit:
-                        iteration_limit_index = i
+                limit_index = len(indices_mean)
+                for i,value in enumerate(indices_mean):
+                    if value > iteration_limit:
+                        limit_index = i + 1
                         break
-            if iteration_limit_index is not None:
-                if min_length > iteration_limit_index:
-                    min_length = iteration_limit_index
-            for i, run_data in enumerate(data_array):
-                data_array[i] = run_data[:min_length]
-            nparray = np.array(data_array)
-            cut_weight_mean = nparray.mean(axis=0)
-            # sigma = nparray.std(axis=0)
+                indices_mean = indices_mean[:limit_index]
+                data_mean = data_mean[:limit_index]
+                data_max = data_max[:limit_index]
+                data_min = data_min[:limit_index]
+
             color = self.colors[plot_nr%len(self.colors)]
             fmt = '-'
-            indices = indices[:min_length]
-            plt.plot(indices, cut_weight_mean, fmt, label=labels[algo_hash], color=color)
-            plt.fill_between(indices, np.amax(nparray, axis=0), np.amin(nparray, axis=0), facecolor=color, alpha=0.5)
+
+            plt.plot(indices_mean, data_mean, fmt, label=labels[algo_hash], color=color)
+            plt.fill_between(indices_mean, data_max, data_min, facecolor=color, alpha=0.5)
             plot_nr += 1
         # plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
         #    ncol=1, mode="expand", borderaxespad=0., prop={'size': 6})
