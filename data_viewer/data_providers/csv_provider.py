@@ -214,7 +214,7 @@ class CSVDataProvider:
                     data[algo_id][run_nr] = []
                 datapoints = []
                 for field in datafields:
-                    datapoints.append(int(row[field]))
+                    datapoints.append(int(float(row[field])))
                 data[algo_id][run_nr].append(tuple(datapoints))
         return data
 
