@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 def main():
 
     parser = ArgumentParser()
-    parser.add_argument('-d','--dir', help='opens the specified directory on program startup')
+    parser.add_argument('-d','--dir', help='opens the specified directory on program startup', nargs='*')
     args = parser.parse_args()
 
     data_provider = CSVDataProvider()
@@ -20,7 +20,9 @@ def main():
     controller.view = view
 
     if args.dir:
-        controller.open_path(args.dir)
+        print(args.dir)
+        for d in args.dir:
+            controller.open_path(d)
 
     controller.start()
 
