@@ -4,6 +4,7 @@ from data_viewer.controller import Controller
 from data_viewer.views.tkview import TKView
 from data_viewer.plotter import MatplotlibPlotter
 from data_viewer.data_providers.csv_provider import CSVDataProvider
+from data_viewer.data_providers.array_csv_provider import ArrayCSVDataProvider
 from argparse import ArgumentParser
 
 def main():
@@ -12,7 +13,7 @@ def main():
     parser.add_argument('-d','--dir', help='opens the specified directory on program startup', nargs='*')
     args = parser.parse_args()
 
-    data_provider = CSVDataProvider()
+    data_provider = ArrayCSVDataProvider()
     plotter = MatplotlibPlotter()
 
     controller = Controller(data_provider, plotter)

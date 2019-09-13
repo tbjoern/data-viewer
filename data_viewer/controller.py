@@ -17,6 +17,7 @@ class Controller:
     def open_path(self, path):
         self.data_provider.open_path(path)
         instances = self.data_provider.instances
+        instances.sort()
         algorithms = self.data_provider.algorithms
         algorithms = [(self.data_provider.build_algorithm_name(algorithm), algorithm) for algorithm in algorithms]
         self.view.display_instances(instances, None)

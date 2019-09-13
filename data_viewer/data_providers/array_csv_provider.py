@@ -1,7 +1,9 @@
-from interfaces import DataProvider
+from data_viewer.interfaces import DataProvider
+from math import floor
 import os
 import json
 import csv
+from functools import lru_cache
 
 class ConfigNotFound(Exception):
     pass
@@ -15,19 +17,19 @@ class ArrayCSVDataProvider(DataProvider):
         self._algorithms = {}
         self.config = {}
 
-    instances = property(get_instances)
-    algorithms = property(get_algorithms)
-
     def get_instances(self):
-        return self._instances.keys()
+        return list(self._instances.keys())
 
     def get_algorithms(self):
-        return self._algorithms.values()
+        return list(self._algorithms.values())
+
+    instances = property(get_instances)
+    algorithms = property(get_algorithms)
 
     def open_path(self, path):
         # read config
         # assuming it has the same name as the directory
-        directory = os.path.dirname(os.path.abspath(path))
+        directory = os.path.basename(os.path.abspath(path))
         configfile = directory + ".json"
         configpath = os.path.join(path, configfile)
 
@@ -37,19 +39,24 @@ class ArrayCSVDataProvider(DataProvider):
         with open(configpath, 'r') as f:
             self.config = json.load(f)
 
-        _, subdirs, _ = next(os.path.walk(path))
+        _, subdirs, _ = next(os.walk(path))
 
         if not len(subdirs) == 1:
-            raise AmbiguousInstanceDir(f"Found {len(subdirs) subdirs in {path}, 1 expected")
+            raise AmbiguousInstanceDir(f"Found {len(subdirs)} subdirs in {path}, 1 expected")
 
-        configcount = sum(len(files) for path, dirs, files in os.walk(subdirs[0]))
+        instancedir = os.path.join(path, subdirs[0])
+
+        configcount = sum(len(files) for path, dirs, files in os.walk(instancedir))
 
         runcount = self.config["run_count"]
         algorithmcount = len(self.config["algorithms"])
-        instancecount = configcount / (runcount * algorithmcount)
+        algorithm_run_combinations = runcount * algorithmcount
+        instancecount = floor(configcount / (algorithm_run_combinations))
+
+        #print(f"{runcount} {algorithmcount} {instancecount} {configcount} {runcount * algorithmcount * instancecount}")
 
         # index files
-        for path, dirs, files in os.path.walk(path):
+        for path, dirs, files in os.walk(path):
             for f in files:
                 # naming scheme: name-config_1234.json.out
                 filename, extension = os.path.splitext(f)
@@ -60,9 +67,11 @@ class ArrayCSVDataProvider(DataProvider):
 
                 instancename, configstring = filename.rsplit('-',1) # name, config_1234
                 confignumber = int(configstring.split('_', 1)[1]) # 1234
-                algorithm_run_number = confignumber % instancecount
-                algorithmid = algorithm_run_number / runcount
+                algorithm_run_number = confignumber % algorithm_run_combinations
+                algorithmid = floor(algorithm_run_number / runcount)
                 runnumber = algorithm_run_number % runcount
+
+                #print(f"{confignumber} {algorithm_run_number} {algorithmid} {runnumber}")
 
                 if not instancename in self._instances:
                     self._instances[instancename] = {}
@@ -94,10 +103,10 @@ class ArrayCSVDataProvider(DataProvider):
     def build_algorithm_name(self, algorithm):
         tokens = [algorithm[1]]
         if "decay_rate" in algorithm[2]:
-            tokens.append(algorithm[2][["decay_rate"]
+            tokens.append(algorithm[2]["decay_rate"])
         if "power_law_beta" in algorithm[2]:
-            tokens.append(algorithm[2]["power_law_beta")
-        return "_".join(tokens)
+            tokens.append(algorithm[2]["power_law_beta"])
+        return "_".join((str(x) for x in tokens))
 
     def get_plot_data(self, instance, algorithms):
         ret_data = {
@@ -119,7 +128,8 @@ class ArrayCSVDataProvider(DataProvider):
         
         return ret_data
 
-    def self.read_run_data(filename):
+    @lru_cache(maxsize=160)
+    def read_run_data(self, filename):
         data = []
         with open(filename, 'r') as f:
             reader = csv.reader(f)
@@ -128,7 +138,7 @@ class ArrayCSVDataProvider(DataProvider):
             
             for row in reader:
                 id, run, generation, fitness, total_time, flips = row
-                data.append((generation, fitness, total_time, flips))
+                data.append((int(generation), float(fitness), float(total_time), float(flips)))
         return data
 
 

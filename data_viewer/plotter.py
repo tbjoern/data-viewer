@@ -67,7 +67,7 @@ class MatplotlibPlotter(Plotter):
 
         # Put a legend below current axis
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-                fancybox=True, shadow=True, ncol=1)
+                fancybox=True, shadow=True, ncol=2)
         f.suptitle(plot_name)
         return Plot(f, plot_name)
 
