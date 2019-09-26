@@ -11,7 +11,9 @@ class Controller:
         algorithms = self.view.get_selected_algorithms()
         data = self.data_provider.get_plot_data(item, algorithms)
         axes = self.view.get_selected_axes()
-        plot = self.plotter.plot(data, self.view.get_iteration_limit(), axes)
+        axes_names = self.data_provider.get_item_metadata(item)['fieldnames']
+        axes_names = tuple(axes_names[i] for i in axes)
+        plot = self.plotter.plot(data, self.view.get_iteration_limit(), axes, axes_names)
         self.view.display_plot(plot)
 
     def open_path(self, path):

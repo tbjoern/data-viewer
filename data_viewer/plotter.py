@@ -28,7 +28,7 @@ class MatplotlibPlotter(Plotter):
     def __init__(self):
         self.colors = list(reversed(['red', 'orange', 'yellow', 'greenyellow','turquoise','cornflowerblue','mediumpurple','mediumorchid','hotpink']))
 
-    def plot(self, plot_data, iteration_limit=None, axes=(0,1)):
+    def plot(self, plot_data, iteration_limit=None, axes=(0,1), axes_names=(None,None)):
         f = Figure()
         plt = f.add_subplot(111)
         data = plot_data['data']
@@ -36,6 +36,7 @@ class MatplotlibPlotter(Plotter):
         plot_name = plot_data['instance_name']
         plot_nr = 0
         xaxis, yaxis = axes
+        xlabel, ylabel = axes_names
         for algo_hash, runs in data.items():
             indices = get_axis_data(xaxis, data[algo_hash])
             
@@ -66,11 +67,14 @@ class MatplotlibPlotter(Plotter):
                         box.width, box.height * 0.8])
 
         # Put a legend below current axis
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
-                fancybox=True, shadow=True, ncol=2)
-        f.suptitle(plot_name)
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.10),
+                fancybox=True, shadow=True, ncol=4)
+
+        plt.set_xlabel(xlabel)
+        plt.set_ylabel(ylabel)
+        #f.suptitle(plot_name)
         return Plot(f, plot_name)
 
     def save_plot(self, plot):
-        plot.figure.savefig(plot.name + '.png')
+        plot.figure.savefig(plot.name + '.png', dpi=160, bbox_inches='tight')
 

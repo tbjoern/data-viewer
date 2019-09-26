@@ -302,6 +302,7 @@ class TKView(View, Window):
 
     def plot_button_pressed(self):
         instance = self.data_view.get_selection()[0]
+        print(instance)
         if instance:
             self.controller.handle_item_selected(instance)
 
