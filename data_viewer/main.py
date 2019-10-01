@@ -11,9 +11,14 @@ def main():
 
     parser = ArgumentParser()
     parser.add_argument('-d','--dir', help='opens the specified directory on program startup', nargs='*')
+    parser.add_argument('--array', help='Selects the array data format', action='store_true')
     args = parser.parse_args()
 
-    data_provider = ArrayCSVDataProvider()
+    if args.array:
+        data_provider = ArrayCSVDataProvider()
+    else:
+        data_provider = CSVDataProvider()
+
     plotter = MatplotlibPlotter()
 
     controller = Controller(data_provider, plotter)
