@@ -102,10 +102,11 @@ class ArrayCSVDataProvider(DataProvider):
 
     def build_algorithm_name(self, algorithm):
         tokens = [algorithm[1]]
-        if "decay_rate" in algorithm[2]:
-            tokens.append(algorithm[2]["decay_rate"])
-        if "power_law_beta" in algorithm[2]:
-            tokens.append(algorithm[2]["power_law_beta"])
+        if algorithm[2] is not None:
+            if "decay_rate" in algorithm[2]:
+                tokens.append(algorithm[2]["decay_rate"])
+            if "power_law_beta" in algorithm[2]:
+                tokens.append(algorithm[2]["power_law_beta"])
         return "_".join((str(x) for x in tokens))
 
     def get_plot_data(self, instance, algorithms):
